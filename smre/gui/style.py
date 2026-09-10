@@ -60,7 +60,27 @@ class SMRStyle:
         self.title_bar_height = 26.0
 
         self.hover_transition_seconds = 0.15
+        self.anim_press_seconds = 0.08
+        self.anim_value_seconds = 0.14
+        self.anim_popup_seconds = 0.12
         self.disabled_alpha = 0.4
+
+        self.scale = 1.0
+
+    def scaled(self, value):
+        return value * self.scale
+
+    def apply_scale(self, factor):
+        self.scale = factor
+        self.window_padding = self.window_padding * factor
+        self.item_spacing = self.item_spacing * factor
+        self.frame_padding = self.frame_padding * factor
+        self.border_size *= factor
+        self.window_rounding *= factor
+        self.frame_rounding *= factor
+        self.scrollbar_size *= factor
+        self.indent_spacing *= factor
+        self.title_bar_height *= factor
 
     def window_bg_with_alpha(self):
         return self.window_bg.with_alpha(self.window_bg_alpha)

@@ -15,8 +15,8 @@ from .resources import ResourceManager
 class Application:
     def __init__(
         self, title="SMRE Application", width=1280, height=720,
-        resizable=True, vsync=True, visible=True, highdpi=False, clear_color=None, enable_audio=True,
-        gui_font_path=None, gui_font_size=18, max_frames=None,
+        resizable=True, vsync=True, visible=True, highdpi=True, multisample=4, clear_color=None,
+        enable_audio=True, gui_font_path=None, gui_font_size=18, max_frames=None,
     ):
         sdl_flags = sdl2.SDL_INIT_VIDEO | sdl2.SDL_INIT_GAMECONTROLLER
         if enable_audio:
@@ -24,7 +24,7 @@ class Application:
         if sdl2.SDL_Init(sdl_flags) != 0:
             raise RuntimeError(f"SDL_Init failed: {sdl2.SDL_GetError()}")
 
-        self.window = window_module.Window(title, width, height, resizable, vsync, visible, highdpi)
+        self.window = window_module.Window(title, width, height, resizable, vsync, visible, highdpi, multisample)
         self.input = input_module.InputManager()
         self.gamepads = input_module.GamepadManager()
         self.clock = time_module.Clock()
@@ -37,7 +37,7 @@ class Application:
         self.dpi_scale_y = 1.0
         self._update_dpi_scale()
 
-        gui.init(gui_font_path, gui_font_size)
+        gui.init(gui_font_path, gui_font_size, dpi_scale=self.dpi_scale_x)
 
         self._running = False
         self.max_frames = max_frames

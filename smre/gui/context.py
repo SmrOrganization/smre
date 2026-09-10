@@ -97,9 +97,14 @@ class GUIContext:
 
         self.toasts = []
 
+        self.overlay_draws = []
+        self.pending_tooltip = None
+
     def new_frame(self):
         self.frame_count += 1
         self.draw_list.reset((0.0, 0.0, self.io.display_size.x, self.io.display_size.y))
+        self.overlay_draws = []
+        self.pending_tooltip = None
 
         self._hovered_window_name = None
         for name in reversed(self.window_order):
@@ -144,6 +149,9 @@ class GUIContext:
         self.next_window_position = None
         self.next_window_size = None
         return window
+
+    def push_overlay(self, draw_fn):
+        self.overlay_draws.append(draw_fn)
 
     def push_id(self, value):
         self.id_stack.append(str(value))

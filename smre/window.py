@@ -1,18 +1,25 @@
 import ctypes
 
 import sdl2
+from OpenGL import GL as gl
 
 from . import log
 
 
 class Window:
-    def __init__(self, title="SMRE Window", width=1280, height=720, resizable=True, vsync=True, visible=True, highdpi=False, gl_major=3, gl_minor=3):
+    def __init__(
+        self, title="SMRE Window", width=1280, height=720, resizable=True, vsync=True,
+        visible=True, highdpi=True, multisample=4, gl_major=3, gl_minor=3,
+    ):
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_CONTEXT_MAJOR_VERSION, gl_major)
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_CONTEXT_MINOR_VERSION, gl_minor)
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_CONTEXT_PROFILE_MASK, sdl2.SDL_GL_CONTEXT_PROFILE_CORE)
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_DOUBLEBUFFER, 1)
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_DEPTH_SIZE, 24)
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_STENCIL_SIZE, 8)
+        if multisample:
+            sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_MULTISAMPLEBUFFERS, 1)
+            sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_MULTISAMPLESAMPLES, multisample)
 
         flags = sdl2.SDL_WINDOW_OPENGL
         if highdpi:
@@ -26,12 +33,25 @@ class Window:
             sdl2.SDL_WINDOWPOS_CENTERED, sdl2.SDL_WINDOWPOS_CENTERED,
             width, height, flags,
         )
+        if not self.handle and multisample:
+            log.warning(f"Multisample window creation failed ({sdl2.SDL_GetError().decode()}), retrying without it")
+            sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_MULTISAMPLEBUFFERS, 0)
+            sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_MULTISAMPLESAMPLES, 0)
+            multisample = 0
+            self.handle = sdl2.SDL_CreateWindow(
+                title.encode("utf-8"),
+                sdl2.SDL_WINDOWPOS_CENTERED, sdl2.SDL_WINDOWPOS_CENTERED,
+                width, height, flags,
+            )
         if not self.handle:
             raise RuntimeError(f"Failed to create SDL window: {sdl2.SDL_GetError()}")
 
         self.gl_context = sdl2.SDL_GL_CreateContext(self.handle)
         if not self.gl_context:
             raise RuntimeError(f"Failed to create OpenGL context: {sdl2.SDL_GetError()}")
+
+        if multisample:
+            gl.glEnable(gl.GL_MULTISAMPLE)
 
         self.set_vsync(vsync)
         self._width = width

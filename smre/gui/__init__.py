@@ -10,7 +10,7 @@ from .renderer import GuiRenderer
 from .style import SMRStyle
 from .widgets import (
     badge, begin_disabled, begin_main_menu_bar, begin_menu, button, checkbox,
-    collapsing_header, color_edit3, combo, draw_toasts, drag_float, drag_int,
+    collapsing_header, color_edit3, combo, draw_toasts, draw_tooltip, drag_float, drag_int,
     end_disabled, end_main_menu_bar, end_menu, image, indent, input_text,
     is_item_hovered, label, measure_text, menu_item, plot_lines, pop_id, progress_bar,
     push_id, push_toast, radio_button, segmented_control, separator, set_tooltip,
@@ -22,11 +22,13 @@ from .window import begin_window, end_window
 _renderer = None
 
 
-def init(font_path=None, font_size=18, style=None):
+def init(font_path=None, font_size=18, style=None, dpi_scale=1.0):
     context = GUIContext()
     if style is not None:
         context.style = style
-    context.font = Font.from_file(font_path, size=font_size)
+    if dpi_scale != 1.0:
+        context.style.apply_scale(dpi_scale)
+    context.font = Font.from_file(font_path, size=max(1, round(font_size * dpi_scale)))
     set_current_context(context)
     return context
 
@@ -77,7 +79,10 @@ def new_frame(input_manager, display_width, display_height, delta_time, dpi_scal
 def render():
     context = get_current_context()
     context.end_frame()
+    for draw_fn in context.overlay_draws:
+        draw_fn()
     draw_toasts(context)
+    draw_tooltip(context)
     renderer = _get_renderer()
     renderer.render(context.draw_list, context.io.display_size.x, context.io.display_size.y)
 
@@ -95,6 +100,10 @@ def get_style():
     return get_current_context().style
 
 
+def get_ui_scale():
+    return get_current_context().style.scale
+
+
 def want_capture_mouse():
     context = get_current_context()
     return context._hovered_window_name is not None or context.active_id is not None
@@ -105,7 +114,7 @@ end = end_window
 
 __all__ = [
     "init", "new_frame", "render", "shutdown",
-    "get_style", "want_capture_mouse",
+    "get_style", "get_ui_scale", "want_capture_mouse",
     "GUIContext", "SMRStyle",
     "begin_window", "end_window", "begin", "end",
     "text", "text_disabled", "text_wrapped", "text_disabled_wrapped", "label", "measure_text",

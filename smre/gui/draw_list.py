@@ -107,7 +107,7 @@ class DrawList:
                 points.append((cx + math.cos(rad) * r, cy + math.sin(rad) * r))
         return points
 
-    def add_rect_filled(self, position, size, color, rounding=0.0, segments=6, corners=(True, True, True, True)):
+    def add_rect_filled(self, position, size, color, rounding=0.0, segments=12, corners=(True, True, True, True)):
         points = self._rounded_rect_points(position.x, position.y, size.x, size.y, rounding, segments, corners)
         cx = position.x + size.x * 0.5
         cy = position.y + size.y * 0.5
@@ -120,7 +120,7 @@ class DrawList:
             next_i = (i + 1) % count
             self._push_triangle(self.white_texture, base, first + i, first + next_i)
 
-    def add_rect_outline(self, position, size, color, thickness=1.0, rounding=0.0, segments=6, corners=(True, True, True, True)):
+    def add_rect_outline(self, position, size, color, thickness=1.0, rounding=0.0, segments=12, corners=(True, True, True, True)):
         points = self._rounded_rect_points(position.x, position.y, size.x, size.y, rounding, segments, corners)
         count = len(points)
         for i in range(count):
